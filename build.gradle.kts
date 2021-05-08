@@ -34,7 +34,6 @@ dependencies {
 }
 
 spotless {
-	ratchetFrom = "origin/master"
 	kotlin {
 		target(fileTree(".") {
 			include("**/*.kt")

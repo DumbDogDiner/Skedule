@@ -58,7 +58,6 @@ class BukkitDispatcher(val plugin: JavaPlugin, val async: Boolean = false) : Cor
     }
 }
 
-
 /**
  * Extension method to quickly access the Skedule scheduler.
  */
