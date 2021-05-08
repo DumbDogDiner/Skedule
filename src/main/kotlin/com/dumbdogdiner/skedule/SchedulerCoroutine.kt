@@ -1,14 +1,27 @@
-package com.okkero.skedule
+/*
+ * Copyright (c) 2021 DumbDogDiner <dumbdogdiner.com>. All rights reserved.
+ * Licensed under the MIT license, see LICENSE for more information.
+ */
+package com.dumbdogdiner.skedule
 
-import com.okkero.skedule.SynchronizationContext.*
+import com.dumbdogdiner.skedule.SynchronizationContext.ASYNC
+import com.dumbdogdiner.skedule.SynchronizationContext.SYNC
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.RestrictsSuspension
+import kotlin.coroutines.createCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitScheduler
 import org.bukkit.scheduler.BukkitTask
-import kotlin.coroutines.*
 
-fun Plugin.schedule(initialContext: SynchronizationContext = SYNC,
-                    co: suspend BukkitSchedulerController.() -> Unit): CoroutineTask {
+fun Plugin.schedule(
+    initialContext: SynchronizationContext = SYNC,
+    co: suspend BukkitSchedulerController.() -> Unit
+): CoroutineTask {
     return server.scheduler.schedule(this, initialContext, co)
 }
 
@@ -22,8 +35,11 @@ fun Plugin.schedule(initialContext: SynchronizationContext = SYNC,
  *
  * @see SynchronizationContext
  */
-fun BukkitScheduler.schedule(plugin: Plugin, initialContext: SynchronizationContext = SYNC,
-                             co: suspend BukkitSchedulerController.() -> Unit): CoroutineTask {
+fun BukkitScheduler.schedule(
+    plugin: Plugin,
+    initialContext: SynchronizationContext = SYNC,
+    co: suspend BukkitSchedulerController.() -> Unit
+): CoroutineTask {
     val controller = BukkitSchedulerController(plugin, this)
     val block: suspend BukkitSchedulerController.() -> Unit = {
         try {
@@ -58,7 +74,6 @@ class BukkitSchedulerController(val plugin: Plugin, val scheduler: BukkitSchedul
         get() = schedulerDelegate.currentTask
     val isRepeating: Boolean
         get() = schedulerDelegate is RepeatingTaskScheduler
-
 
     internal suspend fun start(initialContext: SynchronizationContext) = suspendCoroutine<Unit> { cont ->
         schedulerDelegate.doContextSwitch(initialContext) { cont.resume(Unit) }
@@ -118,7 +133,7 @@ class BukkitSchedulerController(val plugin: Plugin, val scheduler: BukkitSchedul
      * @param context the synchronization context of the new task
      */
     suspend fun newContext(context: SynchronizationContext): Unit = suspendCoroutine { cont ->
-        schedulerDelegate.forceNewContext(context, { cont.resume(Unit) })
+        schedulerDelegate.forceNewContext(context) { cont.resume(Unit) }
     }
 
     /**
@@ -132,7 +147,6 @@ class BukkitSchedulerController(val plugin: Plugin, val scheduler: BukkitSchedul
         schedulerDelegate = RepeatingTaskScheduler(resolution, plugin, scheduler)
         schedulerDelegate.forceNewContext(currentContext()) { cont.resume(0) }
     }
-
 }
 
 class CoroutineTask internal constructor(private val controller: BukkitSchedulerController) {
@@ -149,7 +163,6 @@ class CoroutineTask internal constructor(private val controller: BukkitScheduler
     fun cancel() {
         controller.resume(Unit)
     }
-
 }
 
 /**
@@ -165,9 +178,7 @@ enum class SynchronizationContext {
      * The coroutine is in asynchronous context, and all tasks are scheduled asynchronously to the main server thread.
      */
     ASYNC
-
 }
-
 
 private class RepetitionContinuation(val resume: (Long) -> Unit, val delay: Long = 0) {
 
@@ -184,7 +195,6 @@ private class RepetitionContinuation(val resume: (Long) -> Unit, val delay: Long
             resume(this.passedTicks)
         }
     }
-
 }
 
 private interface TaskScheduler {
@@ -198,7 +208,6 @@ private interface TaskScheduler {
     fun doContextSwitch(context: SynchronizationContext, task: (Boolean) -> Unit)
 
     fun forceNewContext(context: SynchronizationContext, task: () -> Unit)
-
 }
 
 private class NonRepeatingTaskScheduler(val plugin: Plugin, val scheduler: BukkitScheduler) : TaskScheduler {
@@ -213,7 +222,7 @@ private class NonRepeatingTaskScheduler(val plugin: Plugin, val scheduler: Bukki
         doWait(0, task)
     }
 
-    //TODO Be lazy if not yet started
+    // TODO Be lazy if not yet started
     override fun doContextSwitch(context: SynchronizationContext, task: (Boolean) -> Unit) {
         val currentContext = currentContext()
         if (context == currentContext) {
@@ -240,13 +249,12 @@ private class NonRepeatingTaskScheduler(val plugin: Plugin, val scheduler: Bukki
             ASYNC -> scheduler.runTaskLaterAsynchronously(plugin, task, ticks)
         }
     }
-
 }
 
 private class RepeatingTaskScheduler(
-        val interval: Long,
-        val plugin: Plugin,
-        val scheduler: BukkitScheduler
+    val interval: Long,
+    val plugin: Plugin,
+    val scheduler: BukkitScheduler
 ) : TaskScheduler {
 
     override var currentTask: BukkitTask? = null
@@ -260,7 +268,7 @@ private class RepeatingTaskScheduler(
         nextContinuation = RepetitionContinuation(task)
     }
 
-    //TODO Be lazy if not yet started...maybe?
+    // TODO Be lazy if not yet started...maybe?
     override fun doContextSwitch(context: SynchronizationContext, task: (Boolean) -> Unit) {
         val currentContext = currentContext()
         if (context == currentContext) {
@@ -283,7 +291,6 @@ private class RepeatingTaskScheduler(
             ASYNC -> scheduler.runTaskTimerAsynchronously(plugin, task, 0L, interval)
         }
     }
-
 }
 
 private fun currentContext() = if (Bukkit.isPrimaryThread()) SYNC else ASYNC

@@ -1,4 +1,8 @@
-package com.okkero.skedule
+/*
+ * Copyright (c) 2021 DumbDogDiner <dumbdogdiner.com>. All rights reserved.
+ * Licensed under the MIT license, see LICENSE for more information.
+ */
+package com.dumbdogdiner.skedule
 
 import org.bukkit.Bukkit
 import org.bukkit.Server
@@ -8,12 +12,19 @@ import org.bukkit.scheduler.BukkitTask
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.runner.RunWith
 import org.mockito.Answers
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyLong
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
-import org.mockito.Mockito.*
-import org.mockito.runners.MockitoJUnitRunner
-import kotlin.test.assertNotNull
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
+import org.mockito.junit.MockitoJUnitRunner
 
 @RunWith(MockitoJUnitRunner::class)
 class SchedulerCoroutineTest {
@@ -112,7 +123,6 @@ class SchedulerCoroutineTest {
             Bukkit.setServer(server)
         }
     }
-
 }
 
 private class MockRepeatingTask(val task: () -> Unit) {
@@ -124,5 +134,4 @@ private class MockRepeatingTask(val task: () -> Unit) {
             task()
         }
     }
-
 }
