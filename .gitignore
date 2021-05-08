@@ -16,3 +16,4 @@ gradle-app.setting
 
 # editor agnosticism
 .idea/
+debug/
