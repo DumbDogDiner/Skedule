@@ -6,6 +6,7 @@ plugins {
 	id("com.diffplug.spotless") version "5.8.2"
 	id("kr.entree.spigradle") version "2.2.3"
 	id("org.jetbrains.dokka") version "1.4.32"
+	id("maven-publish")
 }
 
 group = "com.dumbdogdiner.skedule"
@@ -35,10 +36,69 @@ dependencies {
 spotless {
 	ratchetFrom = "origin/master"
 	kotlin {
-		ktlint()
-		licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
+		target(fileTree(".") {
+			include("**/*.kt")
+			exclude("**/.gradle/**")
+		})
+		// see https://github.com/shyiko/ktlint#standard-rules
+		ktlint().userData(mapOf("max_line_length" to "120", "insert_final_newline" to "true"))
+		licenseHeaderFile("${rootDir}/LICENSE_HEADER")
 	}
 }
+
+val sourcesJar by tasks.creating(Jar::class) {
+	archiveClassifier.set("sources")
+	from(sourceSets.getByName("main").allSource)
+}
+
+val dokkaJavadocJar by tasks.creating(Jar::class) {
+	dependsOn(tasks.dokkaJavadoc)
+	from(tasks.dokkaJavadoc.get().outputDirectory.get())
+	archiveClassifier.set("javadoc")
+}
+
+// define the publication for github packages
+publishing {
+	repositories {
+		maven {
+			name = "GitHubPackages"
+			url = uri("https://maven.pkg.github.com/DumbDogDiner/SkGame")
+			credentials {
+				username = extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
+				password =  extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
+			}
+		}
+	}
+
+	publications {
+		register<MavenPublication>("gpr") {
+			artifactId = "${rootProject.name}-${project.name}"
+
+			from(components["java"])
+			// include the sources, and javadoc in the publication
+			artifact(sourcesJar)
+			artifact(dokkaJavadocJar)
+
+			// configure pom for the output
+			pom {
+				scm {
+					connection.set("scm:git:https://github.com/DumbDogDiner/SkGame.git")
+					developerConnection.set("scm:git:https://github.com/DumbDogDiner/SkGame.git")
+					url.set("https://github.com/DumbDogDiner/SkGame")
+				}
+				issueManagement {
+					system.set("GitHub Issues")
+					url.set("https://github.com/DumbDogDiner/SkGame/issues")
+				}
+				ciManagement {
+					system.set("GitHub Actions")
+					url.set("https://github.com/DumbDogDiner/SkGame/actions")
+				}
+			}
+		}
+	}
+}
+
 
 tasks {
 	compileJava {
