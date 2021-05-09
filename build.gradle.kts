@@ -61,7 +61,7 @@ publishing {
 	repositories {
 		maven {
 			name = "GitHubPackages"
-			url = uri("https://maven.pkg.github.com/DumbDogDiner/SkGame")
+			url = uri("https://maven.pkg.github.com/DumbDogDiner/Skedule")
 			credentials {
 				username = extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
 				password =  extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
@@ -77,6 +77,8 @@ publishing {
 			// include the sources, and javadoc in the publication
 			artifact(sourcesJar)
 			artifact(dokkaJavadocJar)
+
+			artifactId = "skedule"
 
 			// configure pom for the output
 			pom {
@@ -97,7 +99,6 @@ publishing {
 		}
 	}
 }
-
 
 tasks {
 	compileJava {
