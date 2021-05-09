@@ -9,7 +9,7 @@ plugins {
 	id("maven-publish")
 }
 
-group = "com.dumbdogdiner.skedule"
+group = "com.dumbdogdiner"
 version = "1.3.0"
 
 repositories {
@@ -64,7 +64,7 @@ publishing {
 			url = uri("https://maven.pkg.github.com/DumbDogDiner/Skedule")
 			credentials {
 				username = extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
-				password =  extra.properties.getOrDefault("gpr.user", System.getenv("GITHUB_ACTOR")).toString()
+				password =  extra.properties.getOrDefault("gpr.password", System.getenv("GITHUB_ACTOR")).toString()
 			}
 		}
 	}
@@ -83,17 +83,17 @@ publishing {
 			// configure pom for the output
 			pom {
 				scm {
-					connection.set("scm:git:https://github.com/DumbDogDiner/SkGame.git")
-					developerConnection.set("scm:git:https://github.com/DumbDogDiner/SkGame.git")
+					connection.set("scm:git:https://github.com/DumbDogDiner/Skedule.git")
+					developerConnection.set("scm:git:https://github.com/DumbDogDiner/Skedule.git")
 					url.set("https://github.com/DumbDogDiner/SkGame")
 				}
 				issueManagement {
 					system.set("GitHub Issues")
-					url.set("https://github.com/DumbDogDiner/SkGame/issues")
+					url.set("https://github.com/DumbDogDiner/Skedule/issues")
 				}
 				ciManagement {
 					system.set("GitHub Actions")
-					url.set("https://github.com/DumbDogDiner/SkGame/actions")
+					url.set("https://github.com/DumbDogDiner/Skedule/actions")
 				}
 			}
 		}
